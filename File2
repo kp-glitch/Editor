@@ -1,0 +1,106 @@
+import React, { createContext, useContext, useState, ReactNode } from 'react';
+
+interface ContextProviderProps<T> {
+  children: ReactNode;
+  initialState: T;
+}
+
+export const createGenericContext = <T extends unknown>() => {
+  const Context = createContext<{ state: T; setState: React.Dispatch<React.SetStateAction<T>> } | undefined>(undefined);
+
+  const Provider: React.FC<ContextProviderProps<T>> = ({ children, initialState }) => {
+    const [state, setState] = useState<T>(initialState);
+
+    return (
+      <Context.Provider value={{ state, setState }}>
+        {children}
+      </Context.Provider>
+    );
+  };
+
+  const useGenericContext = () => {
+    const context = useContext(Context);
+    if (!context) {
+      throw new Error('useGenericContext must be used within a Provider');
+    }
+    return context;
+  };
+
+  return [Provider, useGenericContext] as const;
+};
+
+@#@#@#@#
+import { createGenericContext } from './contextProvider';
+
+interface Product {
+  code: string;
+  label: string;
+  status: string;
+  date: string;
+}
+
+const initialProductState: Product = {
+  code: '',
+  label: '',
+  status: '',
+  date: ''
+};
+
+export const [ProductProvider, useProduct] = createGenericContext<Product>();
+
+@@##@#########
+
+import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import { useProduct } from './productContext';
+import { updateProduct } from './service';
+
+const ProductDetails: React.FC = () => {
+  const { state } = useLocation<{ mode: string }>();
+  const { state: product, setState: setProduct } = useProduct();
+  const [localProduct, setLocalProduct] = useState(product);
+
+  useEffect(() => {
+    if (product) {
+      setLocalProduct(product);
+    }
+  }, [product]);
+
+  const handleSave = async () => {
+    if (localProduct) {
+      await updateProduct(localProduct.code, localProduct);
+      // Handle post-save actions (e.g., navigate back or show a success message)
+    }
+  };
+
+  return (
+    <div>
+      <h1>Product Details</h1>
+      <div>
+        <label>Code: </label>
+        <input value={localProduct?.code} readOnly />
+      </div>
+      <div>
+        <label>Label: </label>
+        <input value={localProduct?.label} onChange={(e) => setLocalProduct({ ...localProduct, label: e.target.value })} />
+      </div>
+      <div>
+        <label>Status: </label>
+        <select value={localProduct?.status} onChange={(e) => setLocalProduct({ ...localProduct, status: e.target.value })}>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+      </div>
+      <div>
+        <label>Date: </label>
+        <input type="date" value={localProduct?.date} onChange={(e) => setLocalProduct({ ...localProduct, date: e.target.value })} />
+      </div>
+      {state.mode === 'edit' && <button onClick={handleSave}>Save</button>}
+    </div>
+  );
+};
+
+export default ProductDetails;
+
+@#@##@###########
+
