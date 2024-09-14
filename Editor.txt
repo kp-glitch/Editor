@@ -1,1 +1,106 @@
 
+import React, { ReactNode } from 'react';
+import { ProductProvider } from './productContext';
+// Import other context providers here
+
+interface ContextsProviderProps {
+  children: ReactNode;
+}
+
+const ContextsProvider: React.FC<ContextsProviderProps> = ({ children }) => {
+  return (
+    <ProductProvider initialState={{ code: '', label: '', status: '', date: '' }}>
+      {/* Wrap other context providers here */}
+      {children}
+    </ProductProvider>
+  );
+};
+
+export default ContextsProvider;
+#@#@#@#@#@#@#@#@
+
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Product from './Product';
+import ProductDetails from './ProductDetails';
+import ContextsProvider from './contextsProvider';
+
+const App: React.FC = () => {
+  return (
+    <ContextsProvider>
+      <Router>
+        <Routes>
+          <Route path="/products" element={<Product />} />
+          <Route path="/productDetails" element={<ProductDetails />} />
+        </Routes>
+      </Router>
+    </ContextsProvider>
+  );
+};
+
+export default App;
+@#@##@#@#@#@#@#@#@#@#
+
+import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import { useProduct } from './productContext';
+import { updateProduct } from './service';
+
+const ProductDetails: React.FC = () => {
+  const { state } = useLocation<{ mode: string }>();
+  const { state: product, setState: setProduct } = useProduct();
+  const [localProduct, setLocalProduct] = useState(product);
+
+  useEffect(() => {
+    if (product) {
+      setLocalProduct(product);
+    }
+  }, [product]);
+
+  const handleSave = async () => {
+    if (localProduct) {
+      await updateProduct(localProduct.code, localProduct);
+      // Handle post-save actions (e.g., navigate back or show a success message)
+    }
+  };
+
+  const handleDateChange = (date: Date) => {
+    setLocalProduct({ ...localProduct, date: date.toISOString().split('T')[0] });
+  };
+
+  return (
+    <div>
+      <h1>Product Details</h1>
+      <div>
+        <label>Code: </label>
+        <input value={localProduct?.code} readOnly />
+      </div>
+      <div>
+        <label>Label: </label>
+        <input value={localProduct?.label} onChange={(e) => setLocalProduct({ ...localProduct, label: e.target.value })} />
+      </div>
+      <div>
+        <label>Status: </label>
+        <select value={localProduct?.status} onChange={(e) => setLocalProduct({ ...localProduct, status: e.target.value })}>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+      </div>
+      <div>
+        <label>Date: </label>
+        <DatePicker
+          selected={localProduct?.date ? new Date(localProduct.date) : null}
+          onChange={handleDateChange}
+          dateFormat="yyyy-MM-dd"
+        />
+      </div>
+      {state.mode === 'edit' && <button onClick={handleSave}>Save</button>}
+    </div>
+  );
+};
+
+export default ProductDetails;
+@#@#@#@#@#@##@#@#@#
+
