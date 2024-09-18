@@ -450,5 +450,101 @@ export default Equipment;
   font-size: 16px;
   cursor: pointer;
 }
+/////////////////////////////////////////////
+touched
+import React from 'react';
+import { Formik, Form, Field, ErrorMessage } from 'formik';
+import * as Yup from 'yup';
+import Textfield from './Textfield';
+import Dropdown from './Dropdown';
+import Datepicker from './Datepicker';
+
+const Equipment: React.FC = () => {
+  const dropdownOptions = [
+    { value: 'option1', label: 'Option 1' },
+    { value: 'option2', label: 'Option 2' },
+    { value: 'option3', label: 'Option 3' },
+  ];
+
+  const validationSchema = Yup.object().shape({
+    equipmentName: Yup.string()
+      .required('Equipment Name is required')
+      .min(2, 'Equipment Name must be at least 2 characters'),
+    equipmentType: Yup.string()
+      .required('Equipment Type is required'),
+    purchaseDate: Yup.date()
+      .required('Purchase Date is required')
+      .nullable(),
+  });
+
+  const handleBack = () => {
+    // Implement your back navigation logic here
+    console.log('Back button clicked');
+  };
+
+  return (
+    <Formik
+      initialValues={{ equipmentName: '', equipmentType: '', purchaseDate: null }}
+      validationSchema={validationSchema}
+      validateOnChange={false}
+      validateOnBlur={false}
+      onSubmit={(values, { setSubmitting }) => {
+        console.log(values);
+        setSubmitting(false);
+      }}
+    >
+      {({ handleSubmit, validateForm, setTouched }) => (
+        <Form
+          onSubmit={(e) => {
+            e.preventDefault();
+            validateForm().then(() => {
+              setTouched({
+                equipmentName: true,
+                equipmentType: true,
+                purchaseDate: true,
+              });
+              handleSubmit(e);
+            });
+          }}
+        >
+          <Field
+            name="equipmentName"
+            component={Textfield}
+            label="Equipment Name"
+            readOnly={false}
+            required={true}
+          />
+          <ErrorMessage name="equipmentName" component="div" className="error" />
+          
+          <Field
+            name="equipmentType"
+            component={Dropdown}
+            label="Equipment Type"
+            options={dropdownOptions}
+            readOnly={false}
+            required={true}
+          />
+          <ErrorMessage name="equipmentType" component="div" className="error" />
+          
+          <Field
+            name="purchaseDate"
+            component={Datepicker}
+            label="Purchase Date"
+            showTimeSelect={false}
+            required={true}
+          />
+          <ErrorMessage name="purchaseDate" component="div" className="error" />
+          
+          <div className="button-group">
+            <button type="button" onClick={handleBack}>Back</button>
+            <button type="submit">Save</button>
+          </div>
+        </Form>
+      )}
+    </Formik>
+  );
+};
+
+export default Equipment;
 
 
