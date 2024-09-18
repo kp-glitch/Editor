@@ -343,20 +343,6 @@ export default Equipment;
 vaidation
 ///////////////////////////////////////////////
 
-import * as Yup from 'yup';
-
-const validationSchema = Yup.object().shape({
-  equipmentName: Yup.string()
-    .required('Equipment Name is required')
-    .min(2, 'Equipment Name must be at least 2 characters'),
-  equipmentType: Yup.string()
-    .required('Equipment Type is required'),
-  purchaseDate: Yup.date()
-    .required('Purchase Date is required')
-    .nullable(),
-});
-
-
 import React from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
@@ -391,11 +377,14 @@ const Equipment: React.FC = () => {
     <Formik
       initialValues={{ equipmentName: '', equipmentType: '', purchaseDate: null }}
       validationSchema={validationSchema}
-      onSubmit={(values) => {
+      validateOnChange={false}
+      validateOnBlur={false}
+      onSubmit={(values, { setSubmitting }) => {
         console.log(values);
+        setSubmitting(false);
       }}
     >
-      {({ handleSubmit }) => (
+      {({ handleSubmit, validateForm }) => (
         <Form onSubmit={handleSubmit}>
           <Field
             name="equipmentName"
@@ -427,7 +416,12 @@ const Equipment: React.FC = () => {
           
           <div className="button-group">
             <button type="button" onClick={handleBack}>Back</button>
-            <button type="submit">Save</button>
+            <button
+              type="submit"
+              onClick={() => validateForm()}
+            >
+              Save
+            </button>
           </div>
         </Form>
       )}
@@ -436,6 +430,7 @@ const Equipment: React.FC = () => {
 };
 
 export default Equipment;
+
 //////////////////////////////////////////
 
 .error {
@@ -455,4 +450,5 @@ export default Equipment;
   font-size: 16px;
   cursor: pointer;
 }
+
 
