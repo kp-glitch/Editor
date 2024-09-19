@@ -1,0 +1,73 @@
+import React from 'react';
+import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import { FieldProps } from 'formik';
+import { styled } from '@mui/system';
+import './font.css'; // Import your CSS file
+
+interface MuiSelectProps extends FieldProps {
+  label: string;
+  required?: boolean;
+  readOnly?: boolean;
+  options: { value: string | number; label: string }[];
+}
+
+const CustomSelect = styled(Select)(({ theme }) => ({
+  '& .MuiInput-underline:before': {
+    borderBottomColor: 'var(--globalBorderColor)', // Use CSS variable
+  },
+  '& .MuiInput-underline:hover:not(.Mui-disabled):before': {
+    borderBottomColor: 'var(--globalBorderColor)', // Use CSS variable
+  },
+  '& .MuiInput-underline:after': {
+    borderBottomColor: 'var(--globalBorderColor)', // Use CSS variable
+  },
+  '& .MuiInputLabel-root.Mui-focused': {
+    color: 'var(--globalLabelColor)', // Use CSS variable
+  },
+  '& .MuiInputLabel-root': {
+    fontSize: 'var(--globalFontSize)', // Use CSS variable
+    fontFamily: 'var(--globalFontFamily)', // Use CSS variable
+  },
+  '& .MuiInputBase-input': {
+    fontSize: 'var(--globalFontSize)', // Use CSS variable
+    fontFamily: 'var(--globalFontFamily)', // Use CSS variable
+  },
+}));
+
+const MuiSelect: React.FC<MuiSelectProps> = ({
+  field,
+  form,
+  label,
+  required = false,
+  readOnly = false,
+  options,
+  ...props
+}) => {
+  const errorText = form.touched[field.name] && form.errors[field.name] ? form.errors[field.name] as string : '';
+
+  return (
+    <FormControl fullWidth variant="standard" error={Boolean(form.errors[field.name] && form.touched[field.name])}>
+      <InputLabel>{label}</InputLabel>
+      <CustomSelect
+        {...field}
+        {...props}
+        label={label}
+        required={required}
+        slotProps={{
+          input: {
+            readOnly: readOnly,
+          },
+        }}
+      >
+        {options.map((option) => (
+          <MenuItem key={option.value} value={option.value}>
+            {option.label}
+          </MenuItem>
+        ))}
+      </CustomSelect>
+      {errorText && <p style={{ color: 'red' }}>{errorText}</p>}
+    </FormControl>
+  );
+};
+
+export default MuiSelect;
